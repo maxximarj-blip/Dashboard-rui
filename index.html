@@ -42,7 +42,7 @@ header h1{font-family:var(--body);font-weight:600;font-size:clamp(26px,3.4vw,44p
 /* Grid */
 .main{display:grid;grid-template-columns:minmax(0,2.35fr) minmax(300px,1fr);gap:16px}
 .left,.right{display:flex;flex-direction:column;gap:16px;min-width:0}
-.slicers{display:grid;grid-template-columns:.8fr 1fr 1.6fr 1fr;gap:10px}
+.slicers{display:grid;grid-template-columns:1fr .75fr 1fr 1.55fr .95fr;gap:10px}
 .slicer{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px 10px;min-width:0}
 .slicer h3{margin:0 0 6px;font:600 13px var(--body);display:flex;justify-content:space-between;align-items:center;color:var(--text)}
 .slicer h3 button{background:none;border:0;color:var(--muted);cursor:pointer;font:500 12px var(--body);padding:0}
@@ -56,7 +56,8 @@ header h1{font-family:var(--body);font-weight:600;font-size:clamp(26px,3.4vw,44p
 .row{display:grid;gap:16px}
 .row.r1{grid-template-columns:1.15fr 1fr 1fr}
 .row.r2{grid-template-columns:1.9fr 1fr}
-.row.r3{grid-template-columns:1fr 1.9fr}
+.row.r3{grid-template-columns:1fr 1.25fr}
+.row.r4{grid-template-columns:1fr;margin-top:4px}
 .r3 .cv{height:290px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:30px 12px 10px;position:relative;margin-top:12px;min-width:0}
 .panel>.ttl{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,var(--accent-hi),var(--accent));color:#1a0d04;font:700 14px var(--body);padding:5px 16px;border-radius:5px;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 12px rgba(0,0,0,.35)}
@@ -110,6 +111,7 @@ path.uf:hover{stroke:var(--text);stroke-width:1.4}
 .loading{color:var(--muted);font-size:14px;padding:30px;text-align:center}
 footer{color:var(--dim);font-size:12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
 
+@media (max-width:1400px){.slicers{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:1180px){.main{grid-template-columns:1fr}.right{display:grid;grid-template-columns:1fr 1fr;gap:16px}.right .panel{margin-top:0}}
 @media (max-width:900px){.row.r1{grid-template-columns:1fr 1fr}.row.r1 .panel:first-child{grid-column:1/-1}.row.r2,.row.r3{grid-template-columns:1fr}.slicers{grid-template-columns:1fr 1fr}}
 @media (max-width:640px){.row.r1{grid-template-columns:1fr}.right{grid-template-columns:1fr}.slicers{grid-template-columns:1fr}.frame{padding:14px 12px}.logo{display:none}}
@@ -144,15 +146,16 @@ footer{color:var(--dim);font-size:12px;display:flex;justify-content:space-betwee
   <div class="main">
     <div class="left">
       <div class="slicers">
+        <div class="slicer" data-key="cliente"><h3>Cliente <button type="button" data-clear="cliente">limpar</button></h3><div class="opts"></div></div>
         <div class="slicer" data-key="ano"><h3>Ano de vencimento <button type="button" data-clear="ano">limpar</button></h3><div class="opts"></div></div>
         <div class="slicer" data-key="regiao"><h3>Região <button type="button" data-clear="regiao">limpar</button></h3><div class="opts"></div></div>
         <div class="slicer" data-key="situacao"><h3>Situação da cobrança <button type="button" data-clear="situacao">limpar</button></h3><div class="opts"></div></div>
-        <div class="slicer" data-key="cliente"><h3>Cliente <button type="button" data-clear="cliente">limpar</button></h3><div class="opts"></div></div>
+        <div class="slicer" data-key="tipo"><h3>Tipo de cobrança <button type="button" data-clear="tipo">limpar</button></h3><div class="opts"></div></div>
       </div>
       <div class="chips" id="chips"></div>
       <div class="row r1">
         <div class="panel"><div class="ttl">Faturamento por situação</div><div class="cv"><canvas id="cSit"></canvas></div></div>
-        <div class="panel"><div class="ttl">Por tipo de cobrança</div><div class="cv"><canvas id="cTipo"></canvas></div></div>
+        <div class="panel"><div class="ttl">Performance de pagamentos</div><div class="cv"><canvas id="cPerf"></canvas></div><div class="perf-note">% pago sobre o total faturado, por cliente</div></div>
         <div class="panel"><div class="ttl">Crescimento anual</div><div class="cv"><canvas id="cAno"></canvas></div></div>
       </div>
       <div class="row r2">
@@ -161,7 +164,7 @@ footer{color:var(--dim);font-size:12px;display:flex;justify-content:space-betwee
       </div>
       <div class="row r3">
         <div class="panel"><div class="ttl">Faturamento por ano gerador</div><div class="cv"><canvas id="cGer"></canvas></div></div>
-        <div class="panel"><div class="ttl">Faturamento por UF principal</div><div class="cv"><canvas id="cUf"></canvas></div></div>
+        <div class="panel"><div class="ttl">Acesso à plataforma × situação</div><div class="cv" id="acBox"><canvas id="cAc"></canvas></div><div class="perf-note">% de cobranças com e sem acesso em cada situação</div></div>
       </div>
     </div>
     <div class="right">
@@ -173,8 +176,10 @@ footer{color:var(--dim);font-size:12px;display:flex;justify-content:space-betwee
         <ol class="rank" id="rank"></ol>
         <div class="sel-total"><span id="selLbl">Clique em um estado para filtrar</span><b id="selVal"></b></div>
       </div>
-      <div class="panel"><div class="ttl">Performance de pagamentos</div><div class="cv" id="perfBox"><canvas id="cPerf"></canvas></div><div class="perf-note">% pago sobre o total faturado, por cliente</div></div>
     </div>
+  </div>
+  <div class="row r4">
+        <div class="panel"><div class="ttl">Faturamento por UF principal</div><div class="cv"><canvas id="cUf"></canvas></div></div>
   </div>
 </template>
 
@@ -253,7 +258,7 @@ function buildRows(objs){
       desconto:parseNum(o[map.desconto])||0,
       prazo:parseNum(o[map.prazo]),
       meio:meioLabel(o[map.meio]),
-      acesso:String(o[map.acesso]??'').trim(),
+      acesso:String(o[map.acesso]??'').trim()||'Não informado',
       anoGer:(()=>{const n=parseNum(o[map.anoger]);return n?String(Math.round(n)):'Sem ano';})()
     });
   }
@@ -299,9 +304,9 @@ async function loadDefault(){
 
 /* ---------- Estado ---------- */
 let DATA=null, SRC='', CH={};
-const F={ano:new Set(),regiao:new Set(),situacao:new Set(),cliente:new Set(),uf:new Set(),tipo:new Set(),meio:new Set(),anoGer:new Set()};
-const FIELD={ano:'y',regiao:'regiao',situacao:'situacao',cliente:'cliente',uf:'uf',tipo:'tipo',meio:'meio',anoGer:'anoGer'};
-const FLABEL={ano:'Ano',regiao:'Região',situacao:'Situação',cliente:'Cliente',uf:'UF',tipo:'Tipo',meio:'Pagamento',anoGer:'Ano gerador'};
+const F={ano:new Set(),regiao:new Set(),situacao:new Set(),cliente:new Set(),uf:new Set(),tipo:new Set(),meio:new Set(),anoGer:new Set(),acesso:new Set()};
+const FIELD={ano:'y',regiao:'regiao',situacao:'situacao',cliente:'cliente',uf:'uf',tipo:'tipo',meio:'meio',anoGer:'anoGer',acesso:'acesso'};
+const FLABEL={ano:'Ano',regiao:'Região',situacao:'Situação',cliente:'Cliente',uf:'UF',tipo:'Tipo',meio:'Pagamento',anoGer:'Ano gerador',acesso:'Acesso'};
 
 function ingest(objs,name){
   const res=buildRows(objs);
@@ -368,10 +373,12 @@ function buildCharts(){
       scales:{x:{display:false,grid:{display:false}},y:{grid:{display:false},border:{display:false},ticks:{color:T,font:{weight:600}}}},
       plugins:{tooltip:{callbacks:{label:c=>' '+brl.format(c.parsed.x)}},datalabels:{anchor:'end',align:'end',color:T,font:{size:11,weight:600},formatter:cmp,clip:false}}}});
 
-  CH.tipo=new Chart(cTipo,{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:c=>grad(c,false),borderRadius:3,barPercentage:.55}]},
-    options:{layout:{padding:{top:24}},onClick:click('tipo',i=>CH.tipo.data.labels[i]),
-      scales:{y:{display:false,beginAtZero:true},x:{grid:{display:false},border:{color:L},ticks:{color:T,font:{weight:600},maxRotation:0,callback:function(v){const l=this.getLabelForValue(v);return l.length>14?l.split(' '):l;}}}},
-      plugins:{tooltip:money,datalabels:{anchor:'end',align:'end',color:T,font:{size:11,weight:600},formatter:cmp}}}});
+  CH.ac=new Chart(document.getElementById('cAc'),{type:'bar',data:{labels:[],datasets:[]},
+    options:{indexAxis:'y',onClick:(e,els)=>{ if(els.length) toggle('acesso',CH.ac.data.datasets[els[0].datasetIndex].label); },
+      scales:{x:{display:false,stacked:true,max:1},y:{stacked:true,grid:{display:false},border:{display:false},ticks:{color:T,font:{weight:600},autoSkip:false}}},
+      plugins:{legend:{display:true,position:'top',align:'end',labels:{color:T,boxWidth:12,boxHeight:10,padding:12}},
+        tooltip:{callbacks:{label:c=>{const d=AC[c.dataIndex],k=c.dataset.label;return ' '+k+': '+pct(c.parsed.x)+' · '+int.format(d.c[k]||0)+' cobranças · '+cmp(d.v[k]||0);}}},
+        datalabels:{color:c=>c.datasetIndex===0?'#1a0d04':'#1a0d04',font:{size:10.5,weight:700},formatter:v=>v>=.12?pct(v):''}}}});
 
   CH.ger=new Chart(document.getElementById('cGer'),{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:c=>grad(c,true),borderRadius:3,barPercentage:.8}]},
     options:{indexAxis:'y',layout:{padding:{right:62}},onClick:click('anoGer',i=>CH.ger.data.labels[i]),
@@ -417,7 +424,7 @@ function buildCharts(){
 }
 
 /* ---------- Render ---------- */
-let UFV={}, UFN={}, PERF=[];
+let UFV={}, UFN={}, PERF=[], AC=[];
 const sum=(rs,f=r=>r.valor)=>rs.reduce((a,r)=>a+f(r),0);
 function groupSum(rs,key){const m=new Map(); for(const r of rs){const k=r[key]; if(k==null) continue; m.set(k,(m.get(k)||0)+r.valor);} return m;}
 
@@ -444,8 +451,18 @@ function render(){
   // Situação
   const sit=[...groupSum(rs,'situacao')].sort((a,b)=>b[1]-a[1]);
   setBar(CH.sit,sit.map(x=>x[0]),sit.map(x=>x[1]),'situacao');
-  const tp=[...groupSum(rs,'tipo')].sort((a,b)=>b[1]-a[1]);
-  setBar(CH.tipo,tp.map(x=>x[0]),tp.map(x=>x[1]),'tipo');
+  // Acesso × situação (100% empilhado, por quantidade)
+  const acKeys=[...new Set(all.map(r=>r.acesso))].sort();
+  const am=new Map();
+  all.filter(r=>pass(r,'acesso')).forEach(r=>{let d=am.get(r.situacao); if(!d) am.set(r.situacao,d={s:r.situacao,n:0,c:{},v:{}});
+    d.n++; d.c[r.acesso]=(d.c[r.acesso]||0)+1; d.v[r.acesso]=(d.v[r.acesso]||0)+r.valor;});
+  AC=[...am.values()].sort((a,b)=>b.n-a.n);
+  document.getElementById('acBox').style.height=Math.max(180,AC.length*30+60)+'px';
+  const acCol=[css('--accent'),css('--text'),css('--muted'),css('--accent-lo')];
+  CH.ac.data.labels=AC.map(d=>d.s);
+  CH.ac.data.datasets=acKeys.map((k,i)=>({label:k,data:AC.map(d=>(d.c[k]||0)/d.n),
+    backgroundColor:F.acesso.size&&!F.acesso.has(k)?'#4a443f':acCol[i%acCol.length],borderColor:css('--panel'),borderWidth:1,barPercentage:.8}));
+  CH.ac.resize(); CH.ac.update();
 
   // Ano gerador (destaca seleção em vez de esconder)
   const rsGer=all.filter(r=>pass(r,'anoGer'));
@@ -461,14 +478,13 @@ function render(){
   all.filter(r=>pass(r,'cliente')).forEach(r=>{let d=pm2.get(r.cliente); if(!d) pm2.set(r.cliente,d={c:r.cliente,n:0,np:0,v:0,vp:0});
     d.n++; d.v+=r.valor; if(r.situacao==='Paga'){d.np++; d.vp+=r.valor;}});
   PERF=[...pm2.values()].sort((a,b)=>(b.vp/b.v)-(a.vp/a.v));
-  document.getElementById('perfBox').style.height=Math.max(160,PERF.length*44+50)+'px';
   CH.perf.data.labels=PERF.map(d=>d.c);
   const dimC='#4a443f';
   CH.perf.data.datasets[0].data=PERF.map(d=>d.np/d.n);
   CH.perf.data.datasets[1].data=PERF.map(d=>d.v?d.vp/d.v:0);
   CH.perf.data.datasets[0].backgroundColor=PERF.map(d=>F.cliente.size&&!F.cliente.has(d.c)?dimC:css('--accent'));
   CH.perf.data.datasets[1].backgroundColor=PERF.map(d=>F.cliente.size&&!F.cliente.has(d.c)?'#5e5751':css('--text'));
-  CH.perf.resize(); CH.perf.update();
+  CH.perf.update();
 
   // Anual
   const an=[...groupSum(rs,'y')].sort((a,b)=>a[0]-b[0]);
@@ -534,7 +550,8 @@ function renderSlicers(all){
     ano:[...new Set(all.map(r=>r.y))].sort(),
     regiao:Object.keys(REGIOES).filter(r=>all.some(x=>x.regiao===r)).concat(all.some(x=>x.regiao==='Outros')?['Outros']:[]),
     situacao:[...new Set(all.map(r=>r.situacao))].sort((a,b)=>{const ia=SIT_ORDER.indexOf(a),ib=SIT_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b);}),
-    cliente:[...new Set(all.map(r=>r.cliente))].sort()
+    cliente:[...new Set(all.map(r=>r.cliente))].sort(),
+    tipo:[...new Set(all.map(r=>r.tipo))].sort()
   };
   document.querySelectorAll('.slicer').forEach(el=>{
     const k=el.dataset.key, f=FIELD[k];
