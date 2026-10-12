@@ -95,6 +95,7 @@ path.uf:hover{stroke:var(--text);stroke-width:1.4}
 .rank .v{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .rank .v small{display:block;color:var(--muted);font-size:11px}
 .rank-empty{color:var(--muted);font-size:12px;padding:4px 0}
+.perf-note{font-size:11px;color:var(--muted);text-align:center;margin-top:4px}
 .tip{position:fixed;pointer-events:none;background:#0d0c0b;border:1px solid var(--accent);color:var(--text);padding:6px 9px;border-radius:6px;font-size:12px;z-index:20;white-space:nowrap}
 
 .chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:28px;font-size:12px;color:var(--muted)}
@@ -172,6 +173,7 @@ footer{color:var(--dim);font-size:12px;display:flex;justify-content:space-betwee
         <ol class="rank" id="rank"></ol>
         <div class="sel-total"><span id="selLbl">Clique em um estado para filtrar</span><b id="selVal"></b></div>
       </div>
+      <div class="panel"><div class="ttl">Performance de pagamentos</div><div class="cv" id="perfBox"><canvas id="cPerf"></canvas></div><div class="perf-note">% pago sobre o total faturado, por cliente</div></div>
     </div>
   </div>
 </template>
@@ -381,6 +383,15 @@ function buildCharts(){
       scales:{y:{display:false,beginAtZero:true},x:{grid:{display:false},border:{color:L},ticks:{color:T,font:{weight:600},maxRotation:0,autoSkip:false}}},
       plugins:{tooltip:money,datalabels:{anchor:'end',align:'end',rotation:-90,offset:2,color:T,font:{size:10,weight:600},formatter:cmp,clip:false}}}});
 
+  CH.perf=new Chart(document.getElementById('cPerf'),{type:'bar',data:{labels:[],datasets:[
+      {label:'Quantidade',data:[],backgroundColor:A,borderRadius:3,barPercentage:.85,categoryPercentage:.75},
+      {label:'Valor',data:[],backgroundColor:css('--text'),borderRadius:3,barPercentage:.85,categoryPercentage:.75}]},
+    options:{indexAxis:'y',layout:{padding:{right:52}},onClick:click('cliente',i=>CH.perf.data.labels[i]),
+      scales:{x:{display:false,beginAtZero:true,suggestedMax:1},y:{grid:{display:false},border:{color:L},ticks:{color:T,font:{weight:700},autoSkip:false}}},
+      plugins:{legend:{display:true,position:'top',align:'end',labels:{color:T,boxWidth:12,boxHeight:10,padding:12}},
+        tooltip:{callbacks:{label:c=>{const d=PERF[c.dataIndex];return c.datasetIndex===0?' Quantidade: '+pct(c.parsed.x)+' ('+int.format(d.np)+' de '+int.format(d.n)+')':' Valor: '+pct(c.parsed.x)+' ('+cmp(d.vp)+' de '+cmp(d.v)+')';}}},
+        datalabels:{anchor:'end',align:'end',offset:3,color:T,font:{size:10.5,weight:600},formatter:v=>(v*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%',clip:false}}}});
+
   CH.ano=new Chart(cAno,{data:{labels:[],datasets:[
       {type:'line',data:[],borderColor:AH,borderDash:[4,4],borderWidth:2,pointRadius:3,pointBackgroundColor:AH,datalabels:{display:false},tension:0},
       {type:'bar',data:[],backgroundColor:c=>grad(c,false),borderRadius:3,barPercentage:.6}]},
@@ -406,7 +417,7 @@ function buildCharts(){
 }
 
 /* ---------- Render ---------- */
-let UFV={}, UFN={};
+let UFV={}, UFN={}, PERF=[];
 const sum=(rs,f=r=>r.valor)=>rs.reduce((a,r)=>a+f(r),0);
 function groupSum(rs,key){const m=new Map(); for(const r of rs){const k=r[key]; if(k==null) continue; m.set(k,(m.get(k)||0)+r.valor);} return m;}
 
@@ -444,6 +455,20 @@ function render(){
   const rsUf=all.filter(r=>pass(r,'uf'));
   const ufs=[...groupSum(rsUf,'uf')].filter(x=>x[0]).sort((a,b)=>b[1]-a[1]);
   setBar(CH.uf,ufs.map(x=>x[0]),ufs.map(x=>x[1]),'uf');
+
+  // Performance de pagamentos por cliente (pago / faturado)
+  const pm2=new Map();
+  all.filter(r=>pass(r,'cliente')).forEach(r=>{let d=pm2.get(r.cliente); if(!d) pm2.set(r.cliente,d={c:r.cliente,n:0,np:0,v:0,vp:0});
+    d.n++; d.v+=r.valor; if(r.situacao==='Paga'){d.np++; d.vp+=r.valor;}});
+  PERF=[...pm2.values()].sort((a,b)=>(b.vp/b.v)-(a.vp/a.v));
+  document.getElementById('perfBox').style.height=Math.max(160,PERF.length*44+50)+'px';
+  CH.perf.data.labels=PERF.map(d=>d.c);
+  const dimC='#4a443f';
+  CH.perf.data.datasets[0].data=PERF.map(d=>d.np/d.n);
+  CH.perf.data.datasets[1].data=PERF.map(d=>d.v?d.vp/d.v:0);
+  CH.perf.data.datasets[0].backgroundColor=PERF.map(d=>F.cliente.size&&!F.cliente.has(d.c)?dimC:css('--accent'));
+  CH.perf.data.datasets[1].backgroundColor=PERF.map(d=>F.cliente.size&&!F.cliente.has(d.c)?'#5e5751':css('--text'));
+  CH.perf.resize(); CH.perf.update();
 
   // Anual
   const an=[...groupSum(rs,'y')].sort((a,b)=>a[0]-b[0]);
