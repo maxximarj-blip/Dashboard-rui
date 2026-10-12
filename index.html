@@ -56,6 +56,8 @@ header h1{font-family:var(--body);font-weight:600;font-size:clamp(26px,3.4vw,44p
 .row{display:grid;gap:16px}
 .row.r1{grid-template-columns:1.15fr 1fr 1fr}
 .row.r2{grid-template-columns:1.9fr 1fr}
+.row.r3{grid-template-columns:1fr 1.9fr}
+.r3 .cv{height:290px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:30px 12px 10px;position:relative;margin-top:12px;min-width:0}
 .panel>.ttl{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,var(--accent-hi),var(--accent));color:#1a0d04;font:700 14px var(--body);padding:5px 16px;border-radius:5px;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .panel .hint{position:absolute;top:8px;right:12px;font-size:11px;color:var(--dim)}
@@ -79,6 +81,20 @@ path.uf:hover{stroke:var(--text);stroke-width:1.4}
 .legend .sel{display:inline-flex;gap:5px;align-items:center}.legend .sel i{width:10px;height:10px;border-radius:2px;background:var(--map-sel)}
 .sel-total{margin-top:8px;border-top:1px solid var(--line);padding-top:8px;display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted)}
 .sel-total b{color:var(--text);font-variant-numeric:tabular-nums}
+.rank-h{display:flex;justify-content:space-between;gap:10px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font:700 13px var(--body);color:var(--text)}
+.rank-h span:last-child{color:var(--muted);font-weight:500;font-size:12px}
+.rank{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+.rank li{display:grid;grid-template-columns:22px 34px minmax(0,1fr) 112px;align-items:center;gap:8px;font-size:13px;cursor:pointer;border-radius:5px;padding:2px 4px}
+.rank li:hover{background:var(--panel-2)}
+.rank li.on{background:var(--accent-soft)}
+.rank .n{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#1a0d04;font:700 12px/22px var(--body);text-align:center}
+.rank li:nth-child(n+4) .n{background:var(--panel-2);color:var(--accent-hi);border:1px solid var(--accent-lo);line-height:20px}
+.rank .u{font-weight:700}
+.rank .b{height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden;min-width:0}
+.rank .b i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-lo),var(--accent-hi));border-radius:4px}
+.rank .v{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rank .v small{display:block;color:var(--muted);font-size:11px}
+.rank-empty{color:var(--muted);font-size:12px;padding:4px 0}
 .tip{position:fixed;pointer-events:none;background:#0d0c0b;border:1px solid var(--accent);color:var(--text);padding:6px 9px;border-radius:6px;font-size:12px;z-index:20;white-space:nowrap}
 
 .chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:28px;font-size:12px;color:var(--muted)}
@@ -94,7 +110,7 @@ path.uf:hover{stroke:var(--text);stroke-width:1.4}
 footer{color:var(--dim);font-size:12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
 
 @media (max-width:1180px){.main{grid-template-columns:1fr}.right{display:grid;grid-template-columns:1fr 1fr;gap:16px}.right .panel{margin-top:0}}
-@media (max-width:900px){.row.r1{grid-template-columns:1fr 1fr}.row.r1 .panel:first-child{grid-column:1/-1}.row.r2{grid-template-columns:1fr}.slicers{grid-template-columns:1fr 1fr}}
+@media (max-width:900px){.row.r1{grid-template-columns:1fr 1fr}.row.r1 .panel:first-child{grid-column:1/-1}.row.r2,.row.r3{grid-template-columns:1fr}.slicers{grid-template-columns:1fr 1fr}}
 @media (max-width:640px){.row.r1{grid-template-columns:1fr}.right{grid-template-columns:1fr}.slicers{grid-template-columns:1fr}.frame{padding:14px 12px}.logo{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -142,12 +158,18 @@ footer{color:var(--dim);font-size:12px;display:flex;justify-content:space-betwee
         <div class="panel"><div class="ttl">Evolução mensal de faturamento</div><div class="cv"><canvas id="cMes"></canvas></div></div>
         <div class="panel"><div class="ttl">Forma de pagamento (pagas)</div><div class="cv"><canvas id="cMeio"></canvas></div></div>
       </div>
+      <div class="row r3">
+        <div class="panel"><div class="ttl">Faturamento por ano gerador</div><div class="cv"><canvas id="cGer"></canvas></div></div>
+        <div class="panel"><div class="ttl">Faturamento por UF principal</div><div class="cv"><canvas id="cUf"></canvas></div></div>
+      </div>
     </div>
     <div class="right">
       <div class="kpis" id="kpis"></div>
-      <div class="panel"><div class="ttl">Faturamento por UF</div>
+      <div class="panel"><div class="ttl">Liquidação por UF</div>
         <div class="mapwrap"><svg id="map" viewBox="0 0 613 639" role="img" aria-label="Mapa do Brasil com faturamento por UF"></svg></div>
         <div class="legend"><span>menor</span><span class="bar"></span><span>maior</span><span class="sel"><i></i>selecionado</span></div>
+        <div class="rank-h"><span>Top 5 UFs em liquidação</span><span id="rankTot"></span></div>
+        <ol class="rank" id="rank"></ol>
         <div class="sel-total"><span id="selLbl">Clique em um estado para filtrar</span><b id="selVal"></b></div>
       </div>
     </div>
@@ -174,7 +196,7 @@ const COLS = {
   venc:['datavencimento','datadevencimento','vencimento'], pag:['datadepagamento','datapagamento','pagamento'],
   valor:['valor','valorcobranca','valortotal'], desconto:['valordesconto','desconto'],
   prazo:['prazoderecebimento','prazorecebimento'], meio:['meiodepagamento','meiopagamento','formadepagamento'],
-  acesso:['acessoaplataforma','acesso']
+  acesso:['acessoaplataforma','acesso'], anoger:['anogerador']
 };
 const REQUIRED = {valor:'Valor', venc:'Data Vencimento', situacao:'Situação Cobranca'};
 const norm = s => String(s??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -229,7 +251,8 @@ function buildRows(objs){
       desconto:parseNum(o[map.desconto])||0,
       prazo:parseNum(o[map.prazo]),
       meio:meioLabel(o[map.meio]),
-      acesso:String(o[map.acesso]??'').trim()
+      acesso:String(o[map.acesso]??'').trim(),
+      anoGer:(()=>{const n=parseNum(o[map.anoger]);return n?String(Math.round(n)):'Sem ano';})()
     });
   }
   return {rows, skipped, cols:map};
@@ -274,9 +297,9 @@ async function loadDefault(){
 
 /* ---------- Estado ---------- */
 let DATA=null, SRC='', CH={};
-const F={ano:new Set(),regiao:new Set(),situacao:new Set(),cliente:new Set(),uf:new Set(),tipo:new Set(),meio:new Set()};
-const FIELD={ano:'y',regiao:'regiao',situacao:'situacao',cliente:'cliente',uf:'uf',tipo:'tipo',meio:'meio'};
-const FLABEL={ano:'Ano',regiao:'Região',situacao:'Situação',cliente:'Cliente',uf:'UF',tipo:'Tipo',meio:'Pagamento'};
+const F={ano:new Set(),regiao:new Set(),situacao:new Set(),cliente:new Set(),uf:new Set(),tipo:new Set(),meio:new Set(),anoGer:new Set()};
+const FIELD={ano:'y',regiao:'regiao',situacao:'situacao',cliente:'cliente',uf:'uf',tipo:'tipo',meio:'meio',anoGer:'anoGer'};
+const FLABEL={ano:'Ano',regiao:'Região',situacao:'Situação',cliente:'Cliente',uf:'UF',tipo:'Tipo',meio:'Pagamento',anoGer:'Ano gerador'};
 
 function ingest(objs,name){
   const res=buildRows(objs);
@@ -315,7 +338,7 @@ function mount(){
   svg.innerHTML=MAP.l.map(s=>'<path class="uf" tabindex="0" data-uf="'+s.id+'" d="'+s.p+'"><title>'+s.n+'</title></path>').join('');
   const tip=document.getElementById('tip');
   svg.addEventListener('mousemove',e=>{const p=e.target.closest('path.uf'); if(!p){tip.hidden=true;return;}
-    const s=MAP.l.find(x=>x.id===p.dataset.uf); tip.innerHTML='<b>'+s.n+' ('+s.id+')</b><br>'+brl.format(UFV[s.id]||0)+' · '+int.format(UFN[s.id]||0)+' cobranças';
+    const s=MAP.l.find(x=>x.id===p.dataset.uf); tip.innerHTML='<b>'+s.n+' ('+s.id+')</b><br>Liquidado: '+brl.format(UFV[s.id]||0)+' · '+int.format(UFN[s.id]||0)+' cobranças pagas';
     tip.hidden=false; tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY+12)+'px';});
   svg.addEventListener('mouseleave',()=>tip.hidden=true);
   svg.querySelectorAll('title').forEach(t=>t.remove());
@@ -347,6 +370,16 @@ function buildCharts(){
     options:{layout:{padding:{top:24}},onClick:click('tipo',i=>CH.tipo.data.labels[i]),
       scales:{y:{display:false,beginAtZero:true},x:{grid:{display:false},border:{color:L},ticks:{color:T,font:{weight:600},maxRotation:0,callback:function(v){const l=this.getLabelForValue(v);return l.length>14?l.split(' '):l;}}}},
       plugins:{tooltip:money,datalabels:{anchor:'end',align:'end',color:T,font:{size:11,weight:600},formatter:cmp}}}});
+
+  CH.ger=new Chart(document.getElementById('cGer'),{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:c=>grad(c,true),borderRadius:3,barPercentage:.8}]},
+    options:{indexAxis:'y',layout:{padding:{right:62}},onClick:click('anoGer',i=>CH.ger.data.labels[i]),
+      scales:{x:{display:false,beginAtZero:true},y:{grid:{display:false},border:{display:false},ticks:{color:T,font:{weight:600},autoSkip:false}}},
+      plugins:{tooltip:{callbacks:{label:c=>' '+brl.format(c.parsed.x)}},datalabels:{anchor:'end',align:'end',color:T,font:{size:10,weight:600},formatter:cmp,clip:false}}}});
+
+  CH.uf=new Chart(document.getElementById('cUf'),{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:c=>grad(c,false),borderRadius:3,barPercentage:.75}]},
+    options:{layout:{padding:{top:60}},onClick:click('uf',i=>CH.uf.data.labels[i]),
+      scales:{y:{display:false,beginAtZero:true},x:{grid:{display:false},border:{color:L},ticks:{color:T,font:{weight:600},maxRotation:0,autoSkip:false}}},
+      plugins:{tooltip:money,datalabels:{anchor:'end',align:'end',rotation:-90,offset:2,color:T,font:{size:10,weight:600},formatter:cmp,clip:false}}}});
 
   CH.ano=new Chart(cAno,{data:{labels:[],datasets:[
       {type:'line',data:[],borderColor:AH,borderDash:[4,4],borderWidth:2,pointRadius:3,pointBackgroundColor:AH,datalabels:{display:false},tension:0},
@@ -403,6 +436,15 @@ function render(){
   const tp=[...groupSum(rs,'tipo')].sort((a,b)=>b[1]-a[1]);
   setBar(CH.tipo,tp.map(x=>x[0]),tp.map(x=>x[1]),'tipo');
 
+  // Ano gerador (destaca seleção em vez de esconder)
+  const rsGer=all.filter(r=>pass(r,'anoGer'));
+  const ger=[...groupSum(rsGer,'anoGer')].sort((a,b)=>(a[0]==='Sem ano')-(b[0]==='Sem ano')||a[0].localeCompare(b[0]));
+  setBar(CH.ger,ger.map(x=>x[0]),ger.map(x=>x[1]),'anoGer');
+  // UF principal
+  const rsUf=all.filter(r=>pass(r,'uf'));
+  const ufs=[...groupSum(rsUf,'uf')].filter(x=>x[0]).sort((a,b)=>b[1]-a[1]);
+  setBar(CH.uf,ufs.map(x=>x[0]),ufs.map(x=>x[1]),'uf');
+
   // Anual
   const an=[...groupSum(rs,'y')].sort((a,b)=>a[0]-b[0]);
   CH.ano.data.labels=an.map(x=>String(x[0]));
@@ -424,8 +466,8 @@ function render(){
   CH.meio.data.datasets[0].backgroundColor=mi.map((x,i)=>F.meio.size&&!F.meio.has(x[0])?'#4a443f':base[i%base.length]);
   CH.meio.update();
 
-  // Mapa: valores consideram todos os filtros exceto UF (para o estado selecionado continuar com contexto)
-  const rsMap=all.filter(r=>pass(r,'uf')); UFV={}; UFN={};
+  // Mapa de liquidação: só cobranças pagas; considera todos os filtros exceto UF
+  const rsMap=all.filter(r=>r.situacao==='Paga'&&pass(r,'uf')); UFV={}; UFN={};
   rsMap.forEach(r=>{UFV[r.uf]=(UFV[r.uf]||0)+r.valor; UFN[r.uf]=(UFN[r.uf]||0)+1;});
   const mx=Math.max(1,...Object.values(UFV));
   const b=hex(css('--map-base')), h=hex(css('--map-hi')), dim=hex('#3b4636');
@@ -436,12 +478,20 @@ function render(){
     if(!v){p.style.fill=rgb(dim);return;}
     const t=Math.sqrt(v/mx); p.style.fill=rgb(b.map((c,i)=>c+(h[i]-c)*t));
   });
+  // Ranking top 5
+  const liqTot=Object.values(UFV).reduce((a,b)=>a+b,0);
+  const top5=Object.entries(UFV).filter(x=>x[0]&&x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const rk=document.getElementById('rank');
+  document.getElementById('rankTot').textContent=liqTot?'Total liquidado '+cmp(liqTot):'';
+  rk.innerHTML=top5.length?top5.map((x,i)=>'<li data-uf="'+esc(x[0])+'" class="'+(F.uf.has(x[0])?'on':'')+'" tabindex="0" title="'+brl.format(x[1])+'"><span class="n">'+(i+1)+'</span><span class="u">'+esc(x[0])+'</span><span class="b"><i style="width:'+(x[1]/top5[0][1]*100).toFixed(1)+'%"></i></span><span class="v">'+cmp(x[1])+'<small>'+pct(x[1]/liqTot)+' do liquidado</small></span></li>').join('')
+    :'<li class="rank-empty">Nenhuma cobrança paga com os filtros atuais.</li>';
+  rk.querySelectorAll('li[data-uf]').forEach(li=>{li.onclick=()=>toggle('uf',li.dataset.uf); li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle('uf',li.dataset.uf);}};});
   const selLbl=document.getElementById('selLbl'), selVal=document.getElementById('selVal');
   if(F.uf.size||F.regiao.size){
     const lbl=F.uf.size?[...F.uf].join(', '):[...F.regiao].join(', ');
-    selLbl.textContent='Faturamento '+(F.uf.size?'UF ':'região ')+lbl; selVal.textContent=brl.format(tot);
-  } else { const top=Object.entries(UFV).sort((a,b)=>b[1]-a[1])[0];
-    selLbl.textContent=top?'Maior UF: '+top[0]+' · clique para filtrar':'Clique em um estado para filtrar'; selVal.textContent=top?brl.format(top[1]):''; }
+    const selLiq=F.uf.size?[...F.uf].reduce((a,u)=>a+(UFV[u]||0),0):Object.entries(UFV).filter(x=>F.regiao.has(UF2REG[x[0]])).reduce((a,x)=>a+x[1],0);
+    selLbl.textContent='Liquidado '+(F.uf.size?'UF ':'região ')+lbl; selVal.textContent=brl.format(selLiq);
+  } else { selLbl.textContent='Clique em um estado ou no ranking para filtrar'; selVal.textContent=''; }
   document.getElementById('foot').textContent='Atualizado em '+new Date().toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
 }
 function setBar(ch,labels,vals,key){
