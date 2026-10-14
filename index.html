@@ -170,9 +170,9 @@ footer{color:var(--dim);font-size:12px;display:flex;justify-content:space-betwee
       <div class="chips" id="chips"></div>
       <div class="kpis" id="kpis"></div>
       <div class="grid">
-        <div class="panel a-sit"><div class="ttl">Faturamento por situação</div><div class="cv"><canvas id="cSit"></canvas></div></div>
-        <div class="panel a-perf"><div class="ttl">Performance de pagamentos</div><div class="cv"><canvas id="cPerf"></canvas></div><div class="perf-note">% pago sobre o total faturado, por cliente</div></div>
-        <div class="panel a-ano"><div class="ttl">Crescimento anual</div><div class="cv"><canvas id="cAno"></canvas></div></div>
+        <div class="panel a-sit"><div class="ttl">Status da Cobrança</div><div class="cv"><canvas id="cSit"></canvas></div></div>
+        <div class="panel a-perf"><div class="ttl">Inadimplência Consolidada</div><div class="cv"><canvas id="cPerf"></canvas></div><div class="perf-note">% pago sobre o total faturado, por cliente</div></div>
+        <div class="panel a-ano"><div class="ttl">Prazo de recebimento por faixa</div><div class="cv"><canvas id="cAno"></canvas></div><div class="perf-note" id="przNote">Dias entre notificação e pagamento</div></div>
         <div class="panel a-mes"><div class="ttl">Inadimplência mensal</div><div class="cv"><canvas id="cMes"></canvas></div><div class="perf-note">% vencido sobre o total do mês de vencimento, em quantidade e valor</div></div>
         <div class="panel a-map"><div class="ttl">Top 5 - Pagamentos</div>
         <div class="mapwrap"><svg id="map" viewBox="0 0 613 639" role="img" aria-label="Mapa do Brasil com faturamento por UF"></svg></div>
@@ -240,6 +240,9 @@ function parseDate(v){
   if(/^\d+([.,]\d+)?$/.test(s)) return parseDate(parseNum(s));
   return null;
 }
+const FAIXAS=['0 a 30','31 a 60','61 a 120','121 a 180','181 a 360','361 a 540','> 540'];
+function faixaPrazo(d){ if(d==null) return null; d=Math.max(0,d);
+  return d<=30?FAIXAS[0]:d<=60?FAIXAS[1]:d<=120?FAIXAS[2]:d<=180?FAIXAS[3]:d<=360?FAIXAS[4]:d<=540?FAIXAS[5]:FAIXAS[6]; }
 function meioLabel(v){
   const s=String(v??'').trim().toUpperCase(); if(!s) return null;
   if(s.includes(',')||s.includes('/')) return 'Misto';
@@ -272,6 +275,7 @@ function buildRows(objs){
       situacao:String(o[map.situacao]??'').trim()||'Não informada',
       desconto:parseNum(o[map.desconto])||0,
       prazo:parseNum(o[map.prazo]),
+      faixa:faixaPrazo(parseNum(o[map.prazo])),
       meio:meioLabel(o[map.meio]),
       acesso:String(o[map.acesso]??'').trim()||'Não informado',
       anoGer:(()=>{const n=parseNum(o[map.anoger]);return n?String(Math.round(n)):'Sem ano';})()
@@ -319,9 +323,9 @@ async function loadDefault(){
 
 /* ---------- Estado ---------- */
 let DATA=null, SRC='', CH={};
-const F={ano:new Set(),regiao:new Set(),situacao:new Set(),cliente:new Set(),uf:new Set(),tipo:new Set(),meio:new Set(),anoGer:new Set(),acesso:new Set()};
-const FIELD={ano:'y',regiao:'regiao',situacao:'situacao',cliente:'cliente',uf:'uf',tipo:'tipo',meio:'meio',anoGer:'anoGer',acesso:'acesso'};
-const FLABEL={ano:'Ano',regiao:'Região',situacao:'Situação',cliente:'Cliente',uf:'UF',tipo:'Tipo',meio:'Pagamento',anoGer:'Ano gerador',acesso:'Acesso'};
+const F={ano:new Set(),regiao:new Set(),situacao:new Set(),cliente:new Set(),uf:new Set(),tipo:new Set(),meio:new Set(),anoGer:new Set(),acesso:new Set(),faixa:new Set()};
+const FIELD={ano:'y',regiao:'regiao',situacao:'situacao',cliente:'cliente',uf:'uf',tipo:'tipo',meio:'meio',anoGer:'anoGer',acesso:'acesso',faixa:'faixa'};
+const FLABEL={ano:'Ano',regiao:'Região',situacao:'Situação',cliente:'Cliente',uf:'UF',tipo:'Tipo',meio:'Pagamento',anoGer:'Ano gerador',acesso:'Acesso',faixa:'Prazo'};
 
 function ingest(objs,name){
   const res=buildRows(objs);
@@ -414,15 +418,12 @@ function buildCharts(){
         tooltip:{callbacks:{label:c=>{const d=PERF[c.dataIndex];return c.datasetIndex===0?' Quantidade: '+pct(c.parsed.x)+' ('+int.format(d.np)+' de '+int.format(d.n)+')':' Valor: '+pct(c.parsed.x)+' ('+cmp(d.vp)+' de '+cmp(d.v)+')';}}},
         datalabels:{anchor:'end',align:'end',offset:3,color:T,font:{size:10.5,weight:600},formatter:v=>(v*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%',clip:false}}}});
 
-  CH.ano=new Chart(cAno,{data:{labels:[],datasets:[
-      {type:'line',data:[],borderColor:AH,borderDash:[4,4],borderWidth:2,pointRadius:3,pointBackgroundColor:AH,datalabels:{display:false},tension:0},
-      {type:'bar',data:[],backgroundColor:c=>grad(c,false),borderRadius:3,barPercentage:.6}]},
-    options:{layout:{padding:{top:34}},onClick:(e,els)=>{ if(els.length) toggle('ano',+CH.ano.data.labels[els[0].index]); },
-      scales:{y:{display:false,beginAtZero:true},x:{grid:{display:false},border:{color:L},ticks:{color:T,font:{weight:700}}}},
-      plugins:{tooltip:{filter:i=>i.datasetIndex===1,callbacks:{label:c=>' '+brl.format(c.parsed.y)}},
-        datalabels:{anchor:'end',align:'end',color:T,font:{size:11,weight:600},textAlign:'center',
-          formatter:(v,c)=>{const d=c.dataset.data; const i=c.dataIndex; if(i===0||!d[i-1]) return cmp(v); const g=v/d[i-1]-1; return [cmp(v),(g>=0?'▲ ':'▼ ')+pct(Math.abs(g))];},
-          color:c=>{const d=c.dataset.data,i=c.dataIndex; return T;}}}}});
+  CH.ano=new Chart(cAno,{type:'bar',data:{labels:FAIXAS,datasets:[{data:[],backgroundColor:c=>grad(c,false),borderRadius:3,barPercentage:.78}]},
+    options:{layout:{padding:{top:34}},onClick:click('faixa',i=>FAIXAS[i]),
+      scales:{y:{display:false,beginAtZero:true},x:{grid:{display:false},border:{color:L},ticks:{color:T,font:{size:11,weight:600},maxRotation:0,autoSkip:false,callback:(v,i)=>FAIXAS[i].split(' ').length>2?[FAIXAS[i].replace(/ a .*/,''),'a '+FAIXAS[i].split(' a ')[1]]:FAIXAS[i]}}},
+      plugins:{tooltip:{callbacks:{title:c=>FAIXAS[c[0].dataIndex]+' dias',label:c=>{const d=PRZ[c.dataIndex];return [' '+int.format(d.n)+' cobranças ('+pct(d.n/PRZT)+')',' Valor: '+brl.format(d.v),' Prazo médio da faixa: '+(d.n?(d.s/d.n).toLocaleString('pt-BR',{maximumFractionDigits:1}):'—')+' dias'];}}},
+        datalabels:{anchor:'end',align:'end',color:T,font:{size:10.5,weight:600},textAlign:'center',
+          formatter:(v,c)=>v?[int.format(v),pct(v/PRZT)]:''}}}});
 
   CH.mes=null;
 
@@ -434,7 +435,7 @@ function buildCharts(){
 }
 
 /* ---------- Render ---------- */
-let UFV={}, UFN={}, PERF=[], AC=[], INAD=[];
+let UFV={}, UFN={}, PERF=[], AC=[], INAD=[], PRZ=[], PRZT=1;
 const sum=(rs,f=r=>r.valor)=>rs.reduce((a,r)=>a+f(r),0);
 function groupSum(rs,key){const m=new Map(); for(const r of rs){const k=r[key]; if(k==null) continue; m.set(k,(m.get(k)||0)+r.valor);} return m;}
 
@@ -496,11 +497,13 @@ function render(){
   CH.perf.data.datasets[1].backgroundColor=PERF.map(d=>F.cliente.size&&!F.cliente.has(d.c)?'#5e5751':css('--text'));
   CH.perf.update();
 
-  // Anual
-  const an=[...groupSum(rs,'y')].sort((a,b)=>a[0]-b[0]);
-  CH.ano.data.labels=an.map(x=>String(x[0]));
-  CH.ano.data.datasets[0].data=an.map(x=>x[1]); CH.ano.data.datasets[1].data=an.map(x=>x[1]);
-  CH.ano.update();
+  // Prazo de recebimento por faixa (analítico do prazo médio)
+  PRZ=FAIXAS.map(()=>({n:0,v:0,s:0}));
+  all.filter(r=>r.faixa&&pass(r,'faixa')).forEach(r=>{const d=PRZ[FAIXAS.indexOf(r.faixa)]; d.n++; d.v+=r.valor; d.s+=Math.max(0,r.prazo);});
+  PRZT=PRZ.reduce((a,d)=>a+d.n,0)||1;
+  setBar(CH.ano,FAIXAS,PRZ.map(d=>d.n),'faixa');
+  const pz=PRZ.reduce((a,d)=>a+d.s,0)/PRZT;
+  document.getElementById('przNote').textContent=PRZT>1?'Prazo médio '+pz.toLocaleString('pt-BR',{maximumFractionDigits:1})+' dias · '+int.format(PRZT)+' cobranças pagas':'Dias entre notificação e pagamento';
 
   // Inadimplência mensal: vencidas / total do mês (quantidade e valor), por mês de vencimento
   const ys=[...new Set(rs.map(r=>r.y))].sort(), multi=ys.length>1;
