@@ -76,7 +76,7 @@ details.slicer>.opts{padding:2px 10px 8px}
 .panel>.ttl{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,var(--accent-hi),var(--accent));color:#1a0d04;font:700 14px var(--body);padding:5px 16px;border-radius:5px;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .panel .hint{position:absolute;top:8px;right:12px;font-size:11px;color:var(--dim)}
 .cv{position:relative;height:250px}
-.a-mes .cv{height:260px}
+.a-mes .cv{height:290px}
 
 /* KPIs */
 .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
@@ -416,15 +416,7 @@ function buildCharts(){
           formatter:(v,c)=>{const d=c.dataset.data; const i=c.dataIndex; if(i===0||!d[i-1]) return cmp(v); const g=v/d[i-1]-1; return [cmp(v),(g>=0?'▲ ':'▼ ')+pct(Math.abs(g))];},
           color:c=>{const d=c.dataset.data,i=c.dataIndex; return T;}}}}});
 
-  const pctFmt=v=>(v*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
-  CH.mes=new Chart(cMes,{type:'bar',data:{labels:[],datasets:[
-      {label:'Quantidade',data:[],backgroundColor:A,borderRadius:2,barPercentage:.9,categoryPercentage:.78},
-      {label:'Valor',data:[],backgroundColor:css('--text'),borderRadius:2,barPercentage:.9,categoryPercentage:.78}]},
-    options:{layout:{padding:{top:44}},interaction:{mode:'index',intersect:false},
-      scales:{y:{display:false,beginAtZero:true,suggestedMax:1},x:{grid:{display:false},border:{color:L},ticks:{color:T,maxRotation:0,autoSkip:false}}},
-      plugins:{legend:{display:true,position:'top',align:'end',labels:{color:T,boxWidth:12,boxHeight:10,padding:12}},
-        tooltip:{callbacks:{title:c=>INAD[c[0].dataIndex].lbl,label:c=>{const d=INAD[c.dataIndex];return c.datasetIndex===0?' Quantidade: '+pctFmt(c.parsed.y)+' ('+int.format(d.nv)+' de '+int.format(d.n)+')':' Valor: '+pctFmt(c.parsed.y)+' ('+cmp(d.vv)+' de '+cmp(d.v)+')';}}},
-        datalabels:{display:'auto',anchor:'end',align:'end',rotation:-90,offset:2,color:T,font:{size:9.5,weight:600},formatter:pctFmt,clip:false}}}});
+  CH.mes=null;
 
   CH.meio=new Chart(cMeio,{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:[AH,A,AL,'#7a3412','#f6c9a3','#5c2a10'],borderColor:css('--panel'),borderWidth:2}]},
     options:{cutout:'52%',layout:{padding:8},onClick:click('meio',i=>CH.meio.data.labels[i]),
@@ -507,10 +499,7 @@ function render(){
   const im=new Map();
   rs.forEach(r=>{const k=r.y*12+r.m; let d=im.get(k); if(!d) im.set(k,d={k,y:r.y,m:r.m,n:0,nv:0,v:0,vv:0}); d.n++; d.v+=r.valor; if(r.situacao==='Vencida'){d.nv++; d.vv+=r.valor;}});
   INAD=[...im.values()].sort((a,b)=>a.k-b.k).map(d=>({...d,lbl:MESES[d.m]+'/'+String(d.y).slice(2)}));
-  CH.mes.data.labels=INAD.map(d=>multi?(d.m===0||d===INAD[0]?[MESES[d.m],String(d.y)]:MESES[d.m]):MESES[d.m]);
-  CH.mes.data.datasets[0].data=INAD.map(d=>d.nv/d.n);
-  CH.mes.data.datasets[1].data=INAD.map(d=>d.v?d.vv/d.v:0);
-  CH.mes.update();
+  drawMes(multi);
 
   // Meio
   const mi=[...groupSum(rs,'meio')].sort((a,b)=>b[1]-a[1]);
@@ -546,6 +535,24 @@ function render(){
     selLbl.textContent='Liquidado '+(F.uf.size?'UF ':'região ')+lbl; selVal.textContent=brl.format(selLiq);
   } else { selLbl.textContent='Clique em um estado ou no ranking para filtrar'; selVal.textContent=''; }
   document.getElementById('foot').textContent='Atualizado em '+new Date().toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+}
+function drawMes(multi){
+  if(CH.mes) CH.mes.destroy();
+  const T=css('--text'),M=css('--muted'),L=css('--line'),A=css('--accent');
+  const p1=v=>(v*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+  const p2=v=>(v*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+  const many=INAD.length>14;
+  CH.mes=new Chart(document.getElementById('cMes'),{type:'line',data:{labels:INAD.map(d=>multi?d.lbl:MESES[d.m]),datasets:[
+      {label:'Valor',data:INAD.map(d=>d.v?d.vv/d.v:0),borderColor:T,backgroundColor:T,pointBackgroundColor:T,borderWidth:2.5,pointRadius:3.5,tension:.25,
+        datalabels:{align:'top',offset:6,color:T}},
+      {label:'Quantidade',data:INAD.map(d=>d.n?d.nv/d.n:0),borderColor:A,backgroundColor:A,pointBackgroundColor:A,borderWidth:2.5,pointRadius:3.5,tension:.25,
+        datalabels:{align:'bottom',offset:6,color:css('--accent-hi')}}]},
+    options:{maintainAspectRatio:false,layout:{padding:{top:8,right:32,left:4}},interaction:{mode:'index',intersect:false},
+      scales:{y:{min:0,max:1,ticks:{color:M,stepSize:.25,callback:v=>Math.round(v*100)+'%'},grid:{color:'rgba(255,255,255,.06)'},border:{display:false}},
+        x:{grid:{display:false},border:{color:L},ticks:{color:T,maxRotation:0,autoSkip:true,autoSkipPadding:10}}},
+      plugins:{legend:{display:true,position:'top',align:'end',labels:{color:T,boxWidth:14,boxHeight:3,padding:14}},
+        tooltip:{callbacks:{title:c=>INAD[c[0].dataIndex].lbl,label:c=>{const d=INAD[c.dataIndex];return c.dataset.label==='Quantidade'?' Quantidade: '+p2(c.parsed.y)+' ('+int.format(d.nv)+' de '+int.format(d.n)+')':' Valor: '+p2(c.parsed.y)+' ('+cmp(d.vv)+' de '+cmp(d.v)+')';}}},
+        datalabels:{display:many?'auto':true,font:{size:10.5,weight:700},formatter:p1,clip:false}}}});
 }
 function setBar(ch,labels,vals,key){
   ch.data.labels=labels; ch.data.datasets[0].data=vals;
