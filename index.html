@@ -173,7 +173,7 @@ footer{color:var(--dim);font-size:12px;display:flex;justify-content:space-betwee
         <div class="panel a-sit"><div class="ttl">Faturamento por situação</div><div class="cv"><canvas id="cSit"></canvas></div></div>
         <div class="panel a-perf"><div class="ttl">Performance de pagamentos</div><div class="cv"><canvas id="cPerf"></canvas></div><div class="perf-note">% pago sobre o total faturado, por cliente</div></div>
         <div class="panel a-ano"><div class="ttl">Crescimento anual</div><div class="cv"><canvas id="cAno"></canvas></div></div>
-        <div class="panel a-mes"><div class="ttl">Inadimplência mensal</div><div class="cv"><canvas id="cMes"></canvas></div><div class="perf-note">Valor vencido em aberto por mês de vencimento, um traço por ano</div></div>
+        <div class="panel a-mes"><div class="ttl">Inadimplência mensal</div><div class="cv"><canvas id="cMes"></canvas></div><div class="perf-note">% vencido sobre o total do mês de vencimento, em quantidade e valor</div></div>
         <div class="panel a-map"><div class="ttl">Top 5 - Pagamentos</div>
         <div class="mapwrap"><svg id="map" viewBox="0 0 613 639" role="img" aria-label="Mapa do Brasil com faturamento por UF"></svg></div>
         <div class="legend"><span>menor</span><span class="bar"></span><span>maior</span><span class="sel"><i></i>selecionado</span></div>
@@ -416,12 +416,15 @@ function buildCharts(){
           formatter:(v,c)=>{const d=c.dataset.data; const i=c.dataIndex; if(i===0||!d[i-1]) return cmp(v); const g=v/d[i-1]-1; return [cmp(v),(g>=0?'▲ ':'▼ ')+pct(Math.abs(g))];},
           color:c=>{const d=c.dataset.data,i=c.dataIndex; return T;}}}}});
 
-  CH.mes=new Chart(cMes,{type:'line',data:{labels:MESES,datasets:[]},
-    options:{layout:{padding:{top:20,right:34,left:34}},interaction:{mode:'index',intersect:false},
-      scales:{y:{display:false,beginAtZero:true,grace:'12%'},x:{grid:{display:false},border:{color:L},ticks:{color:T}}},
-      plugins:{legend:{display:true,position:'bottom',labels:{color:T,boxWidth:18,boxHeight:3,usePointStyle:false}},
-        tooltip:{callbacks:{label:c=>{const d=c.dataset.den[c.dataIndex];return ' '+c.dataset.label+': '+brl.format(c.parsed.y)+(d?' ('+pct(c.parsed.y/d)+' do faturado no mês)':'');}}},
-        datalabels:{display:'auto',align:'top',offset:4,color:c=>c.dataset.borderColor,font:{size:10,weight:600},formatter:v=>v?cmp(v):''}}}});
+  const pctFmt=v=>(v*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+  CH.mes=new Chart(cMes,{type:'bar',data:{labels:[],datasets:[
+      {label:'Quantidade',data:[],backgroundColor:A,borderRadius:2,barPercentage:.9,categoryPercentage:.78},
+      {label:'Valor',data:[],backgroundColor:css('--text'),borderRadius:2,barPercentage:.9,categoryPercentage:.78}]},
+    options:{layout:{padding:{top:44}},interaction:{mode:'index',intersect:false},
+      scales:{y:{display:false,beginAtZero:true,suggestedMax:1},x:{grid:{display:false},border:{color:L},ticks:{color:T,maxRotation:0,autoSkip:false}}},
+      plugins:{legend:{display:true,position:'top',align:'end',labels:{color:T,boxWidth:12,boxHeight:10,padding:12}},
+        tooltip:{callbacks:{title:c=>INAD[c[0].dataIndex].lbl,label:c=>{const d=INAD[c.dataIndex];return c.datasetIndex===0?' Quantidade: '+pctFmt(c.parsed.y)+' ('+int.format(d.nv)+' de '+int.format(d.n)+')':' Valor: '+pctFmt(c.parsed.y)+' ('+cmp(d.vv)+' de '+cmp(d.v)+')';}}},
+        datalabels:{display:'auto',anchor:'end',align:'end',rotation:-90,offset:2,color:T,font:{size:9.5,weight:600},formatter:pctFmt,clip:false}}}});
 
   CH.meio=new Chart(cMeio,{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:[AH,A,AL,'#7a3412','#f6c9a3','#5c2a10'],borderColor:css('--panel'),borderWidth:2}]},
     options:{cutout:'52%',layout:{padding:8},onClick:click('meio',i=>CH.meio.data.labels[i]),
@@ -431,7 +434,7 @@ function buildCharts(){
 }
 
 /* ---------- Render ---------- */
-let UFV={}, UFN={}, PERF=[], AC=[];
+let UFV={}, UFN={}, PERF=[], AC=[], INAD=[];
 const sum=(rs,f=r=>r.valor)=>rs.reduce((a,r)=>a+f(r),0);
 function groupSum(rs,key){const m=new Map(); for(const r of rs){const k=r[key]; if(k==null) continue; m.set(k,(m.get(k)||0)+r.valor);} return m;}
 
@@ -499,13 +502,14 @@ function render(){
   CH.ano.data.datasets[0].data=an.map(x=>x[1]); CH.ano.data.datasets[1].data=an.map(x=>x[1]);
   CH.ano.update();
 
-  // Mensal por ano
-  const years=[...new Set(rs.map(r=>r.y))].sort();
-  const pal=[css('--accent'),css('--text'),css('--muted'),css('--accent-lo'),css('--map-hi')];
-  CH.mes.data.datasets=years.map((y,i)=>{const arr=new Array(12).fill(0), den=new Array(12).fill(0);
-    rs.forEach(r=>{if(r.y===y){den[r.m]+=r.valor; if(r.situacao==='Vencida') arr[r.m]+=r.valor;}});
-    const c=pal[(years.length-1-i)%pal.length];
-    return {label:String(y),den,data:arr.map((v,m)=>den[m]?v:null),borderColor:c,backgroundColor:c,pointBackgroundColor:c,borderWidth:2.5,pointRadius:3,tension:.3,spanGaps:false};});
+  // Inadimplência mensal: vencidas / total do mês (quantidade e valor), por mês de vencimento
+  const ys=[...new Set(rs.map(r=>r.y))].sort(), multi=ys.length>1;
+  const im=new Map();
+  rs.forEach(r=>{const k=r.y*12+r.m; let d=im.get(k); if(!d) im.set(k,d={k,y:r.y,m:r.m,n:0,nv:0,v:0,vv:0}); d.n++; d.v+=r.valor; if(r.situacao==='Vencida'){d.nv++; d.vv+=r.valor;}});
+  INAD=[...im.values()].sort((a,b)=>a.k-b.k).map(d=>({...d,lbl:MESES[d.m]+'/'+String(d.y).slice(2)}));
+  CH.mes.data.labels=INAD.map(d=>multi?(d.m===0||d===INAD[0]?[MESES[d.m],String(d.y)]:MESES[d.m]):MESES[d.m]);
+  CH.mes.data.datasets[0].data=INAD.map(d=>d.nv/d.n);
+  CH.mes.data.datasets[1].data=INAD.map(d=>d.v?d.vv/d.v:0);
   CH.mes.update();
 
   // Meio
