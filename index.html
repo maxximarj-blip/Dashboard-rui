@@ -40,9 +40,27 @@ header h1{font-family:var(--body);font-weight:600;font-size:clamp(26px,3.4vw,44p
 .rule{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-lo) 70%,transparent)}
 
 /* Grid */
-.main{display:grid;grid-template-columns:minmax(0,2.35fr) minmax(300px,1fr);gap:16px}
-.left,.right{display:flex;flex-direction:column;gap:16px;min-width:0}
-.slicers{display:grid;grid-template-columns:1fr .75fr 1fr 1.55fr .95fr;gap:10px}
+.main{display:grid;grid-template-columns:172px minmax(0,1fr);gap:18px;align-items:start}
+.side{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:10px;padding-right:2px}
+.side-h{font:700 12px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--accent-hi);padding:2px 2px 0}
+.slicers{display:flex;flex-direction:column;gap:6px}
+details.slicer{padding:0}
+details.slicer>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:8px 10px;font:600 12.5px var(--body);color:var(--text);border-radius:8px}
+details.slicer>summary::-webkit-details-marker{display:none}
+details.slicer>summary::after{content:"";width:6px;height:6px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-left:4px;transition:transform .15s;flex:none}
+details.slicer[open]>summary::after{transform:rotate(-135deg)}
+details.slicer>summary:hover{background:var(--panel-2)}
+details.slicer>summary:focus-visible{outline:2px solid var(--accent-hi);outline-offset:1px}
+.slicer .sn{flex:1;min-width:0;line-height:1.2}
+.slicer .cnt{font:600 10.5px var(--body);color:var(--muted);white-space:nowrap}
+.slicer .cnt.on{background:var(--accent);color:#1a0d04;border-radius:10px;padding:1px 7px}
+details.slicer>.opts{padding:2px 10px 8px}
+.slicer .opts button{font-size:11.5px;padding:3px 7px}
+.slicer .clr{display:block;margin:0 10px 9px;background:none;border:0;padding:0;color:var(--muted);font:500 11.5px var(--body);cursor:pointer}
+.slicer .clr:hover{color:var(--accent-hi)}
+.content{display:flex;flex-direction:column;gap:14px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;grid-template-areas:"sit sit perf perf ano ano" "mes mes mes mes map map" "meio meio ac ac map map" "ger ger uf uf uf uf"}
+.a-sit{grid-area:sit}.a-perf{grid-area:perf}.a-ano{grid-area:ano}.a-mes{grid-area:mes}.a-meio{grid-area:meio}.a-map{grid-area:map;align-self:start}.a-ac{grid-area:ac}.a-ger{grid-area:ger}.a-uf{grid-area:uf}
 .slicer{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px 10px;min-width:0}
 .slicer h3{margin:0 0 6px;font:600 13px var(--body);display:flex;justify-content:space-between;align-items:center;color:var(--text)}
 .slicer h3 button{background:none;border:0;color:var(--muted);cursor:pointer;font:500 12px var(--body);padding:0}
@@ -53,20 +71,15 @@ header h1{font-family:var(--body);font-weight:600;font-size:clamp(26px,3.4vw,44p
 .slicer .opts button.on{background:var(--accent);border-color:var(--accent);color:#1a0d04;font-weight:600}
 .slicer .opts button.na{opacity:.35}
 
-.row{display:grid;gap:16px}
-.row.r1{grid-template-columns:1.15fr 1fr 1fr}
-.row.r2{grid-template-columns:1.9fr 1fr}
-.row.r3{grid-template-columns:1fr 1.25fr}
-.row.r4{grid-template-columns:1fr;margin-top:4px}
-.r3 .cv{height:290px}
+.a-ger .cv,.a-uf .cv{height:300px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:30px 12px 10px;position:relative;margin-top:12px;min-width:0}
 .panel>.ttl{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,var(--accent-hi),var(--accent));color:#1a0d04;font:700 14px var(--body);padding:5px 16px;border-radius:5px;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .panel .hint{position:absolute;top:8px;right:12px;font-size:11px;color:var(--dim)}
 .cv{position:relative;height:250px}
-.r2 .cv{height:240px}
+.a-mes .cv{height:260px}
 
 /* KPIs */
-.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
 .kpi{border-radius:8px;overflow:hidden;border:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column}
 .kpi .k{background:linear-gradient(180deg,var(--accent-hi),var(--accent));color:#1a0d04;font:700 13.5px/1.2 var(--body);text-align:center;padding:9px 8px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .kpi .v{font:700 clamp(18px,1.7vw,24px) var(--body);text-align:center;padding:10px 6px 2px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
@@ -111,10 +124,9 @@ path.uf:hover{stroke:var(--text);stroke-width:1.4}
 .loading{color:var(--muted);font-size:14px;padding:30px;text-align:center}
 footer{color:var(--dim);font-size:12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
 
-@media (max-width:1400px){.slicers{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:1180px){.main{grid-template-columns:1fr}.right{display:grid;grid-template-columns:1fr 1fr;gap:16px}.right .panel{margin-top:0}}
-@media (max-width:900px){.row.r1{grid-template-columns:1fr 1fr}.row.r1 .panel:first-child{grid-column:1/-1}.row.r2,.row.r3{grid-template-columns:1fr}.slicers{grid-template-columns:1fr 1fr}}
-@media (max-width:640px){.row.r1{grid-template-columns:1fr}.right{grid-template-columns:1fr}.slicers{grid-template-columns:1fr}.frame{padding:14px 12px}.logo{display:none}}
+@media (max-width:1280px){.grid{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"sit sit perf perf" "ano ano meio meio" "mes mes mes mes" "map map ac ac" "ger ger ger ger" "uf uf uf uf"}.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:980px){.main{grid-template-columns:1fr}.side{position:static;max-height:none;overflow:visible}.slicers{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}}
+@media (max-width:700px){.grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"sit" "perf" "ano" "mes" "meio" "map" "ac" "ger" "uf"}.kpis{grid-template-columns:1fr 1fr}.frame{padding:14px 12px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -144,42 +156,37 @@ footer{color:var(--dim);font-size:12px;display:flex;justify-content:space-betwee
 
 <template id="tpl">
   <div class="main">
-    <div class="left">
+    <aside class="side" aria-label="Filtros">
+      <div class="side-h">Filtros</div>
       <div class="slicers">
-        <div class="slicer" data-key="cliente"><h3>Cliente <button type="button" data-clear="cliente">limpar</button></h3><div class="opts"></div></div>
-        <div class="slicer" data-key="ano"><h3>Ano de vencimento <button type="button" data-clear="ano">limpar</button></h3><div class="opts"></div></div>
-        <div class="slicer" data-key="regiao"><h3>Região <button type="button" data-clear="regiao">limpar</button></h3><div class="opts"></div></div>
-        <div class="slicer" data-key="situacao"><h3>Situação da cobrança <button type="button" data-clear="situacao">limpar</button></h3><div class="opts"></div></div>
-        <div class="slicer" data-key="tipo"><h3>Tipo de cobrança <button type="button" data-clear="tipo">limpar</button></h3><div class="opts"></div></div>
+        <details class="slicer" data-key="cliente"><summary><span class="sn">Cliente</span><span class="cnt"></span></summary><div class="opts"></div><button type="button" class="clr" data-clear="cliente">Limpar seleção</button></details>
+        <details class="slicer" data-key="ano"><summary><span class="sn">Ano de vencimento</span><span class="cnt"></span></summary><div class="opts"></div><button type="button" class="clr" data-clear="ano">Limpar seleção</button></details>
+        <details class="slicer" data-key="regiao"><summary><span class="sn">Região</span><span class="cnt"></span></summary><div class="opts"></div><button type="button" class="clr" data-clear="regiao">Limpar seleção</button></details>
+        <details class="slicer" data-key="situacao"><summary><span class="sn">Situação da cobrança</span><span class="cnt"></span></summary><div class="opts"></div><button type="button" class="clr" data-clear="situacao">Limpar seleção</button></details>
+        <details class="slicer" data-key="tipo"><summary><span class="sn">Tipo de cobrança</span><span class="cnt"></span></summary><div class="opts"></div><button type="button" class="clr" data-clear="tipo">Limpar seleção</button></details>
       </div>
+    </aside>
+    <div class="content">
       <div class="chips" id="chips"></div>
-      <div class="row r1">
-        <div class="panel"><div class="ttl">Faturamento por situação</div><div class="cv"><canvas id="cSit"></canvas></div></div>
-        <div class="panel"><div class="ttl">Performance de pagamentos</div><div class="cv"><canvas id="cPerf"></canvas></div><div class="perf-note">% pago sobre o total faturado, por cliente</div></div>
-        <div class="panel"><div class="ttl">Crescimento anual</div><div class="cv"><canvas id="cAno"></canvas></div></div>
-      </div>
-      <div class="row r2">
-        <div class="panel"><div class="ttl">Evolução mensal de faturamento</div><div class="cv"><canvas id="cMes"></canvas></div></div>
-        <div class="panel"><div class="ttl">Forma de pagamento (pagas)</div><div class="cv"><canvas id="cMeio"></canvas></div></div>
-      </div>
-      <div class="row r3">
-        <div class="panel"><div class="ttl">Faturamento por ano gerador</div><div class="cv"><canvas id="cGer"></canvas></div></div>
-        <div class="panel"><div class="ttl">Acesso à plataforma × situação</div><div class="cv" id="acBox"><canvas id="cAc"></canvas></div><div class="perf-note">% de cobranças com e sem acesso em cada situação</div></div>
-      </div>
-    </div>
-    <div class="right">
       <div class="kpis" id="kpis"></div>
-      <div class="panel"><div class="ttl">Top 5 - Pagamentos</div>
+      <div class="grid">
+        <div class="panel a-sit"><div class="ttl">Faturamento por situação</div><div class="cv"><canvas id="cSit"></canvas></div></div>
+        <div class="panel a-perf"><div class="ttl">Performance de pagamentos</div><div class="cv"><canvas id="cPerf"></canvas></div><div class="perf-note">% pago sobre o total faturado, por cliente</div></div>
+        <div class="panel a-ano"><div class="ttl">Crescimento anual</div><div class="cv"><canvas id="cAno"></canvas></div></div>
+        <div class="panel a-mes"><div class="ttl">Inadimplência mensal</div><div class="cv"><canvas id="cMes"></canvas></div><div class="perf-note">Valor vencido em aberto por mês de vencimento, um traço por ano</div></div>
+        <div class="panel a-map"><div class="ttl">Top 5 - Pagamentos</div>
         <div class="mapwrap"><svg id="map" viewBox="0 0 613 639" role="img" aria-label="Mapa do Brasil com faturamento por UF"></svg></div>
         <div class="legend"><span>menor</span><span class="bar"></span><span>maior</span><span class="sel"><i></i>selecionado</span></div>
         <div class="rank-h"><span id="rankTot"></span></div>
         <ol class="rank" id="rank"></ol>
         <div class="sel-total"><span id="selLbl">Clique em um estado para filtrar</span><b id="selVal"></b></div>
       </div>
+        <div class="panel a-meio"><div class="ttl">Forma de pagamento (pagas)</div><div class="cv"><canvas id="cMeio"></canvas></div></div>
+        <div class="panel a-ac"><div class="ttl">Acesso à plataforma × situação</div><div class="cv" id="acBox"><canvas id="cAc"></canvas></div><div class="perf-note">% de cobranças com e sem acesso em cada situação</div></div>
+        <div class="panel a-ger"><div class="ttl">Faturamento por ano gerador</div><div class="cv"><canvas id="cGer"></canvas></div></div>
+        <div class="panel a-uf"><div class="ttl">Faturamento por UF principal</div><div class="cv"><canvas id="cUf"></canvas></div></div>
+      </div>
     </div>
-  </div>
-  <div class="row r4">
-        <div class="panel"><div class="ttl">Faturamento por UF principal</div><div class="cv"><canvas id="cUf"></canvas></div></div>
   </div>
 </template>
 
@@ -410,10 +417,10 @@ function buildCharts(){
           color:c=>{const d=c.dataset.data,i=c.dataIndex; return T;}}}}});
 
   CH.mes=new Chart(cMes,{type:'line',data:{labels:MESES,datasets:[]},
-    options:{layout:{padding:{top:20,right:22,left:22}},interaction:{mode:'index',intersect:false},
+    options:{layout:{padding:{top:20,right:34,left:34}},interaction:{mode:'index',intersect:false},
       scales:{y:{display:false,beginAtZero:true,grace:'12%'},x:{grid:{display:false},border:{color:L},ticks:{color:T}}},
       plugins:{legend:{display:true,position:'bottom',labels:{color:T,boxWidth:18,boxHeight:3,usePointStyle:false}},
-        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+brl.format(c.parsed.y)}},
+        tooltip:{callbacks:{label:c=>{const d=c.dataset.den[c.dataIndex];return ' '+c.dataset.label+': '+brl.format(c.parsed.y)+(d?' ('+pct(c.parsed.y/d)+' do faturado no mês)':'');}}},
         datalabels:{display:'auto',align:'top',offset:4,color:c=>c.dataset.borderColor,font:{size:10,weight:600},formatter:v=>v?cmp(v):''}}}});
 
   CH.meio=new Chart(cMeio,{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:[AH,A,AL,'#7a3412','#f6c9a3','#5c2a10'],borderColor:css('--panel'),borderWidth:2}]},
@@ -443,7 +450,7 @@ function render(){
     ['Faturamento total', tot>=1e7?cmp(tot):brl.format(tot), tot>=1e7?brl.format(tot):''],
     ['Valor recebido (pagas)', vp>=1e7?cmp(vp):brl.format(vp), tot?'<span class="ok">'+pct(vp/tot)+'</span> do faturado':''],
     ['Valor vencido em aberto', vv>=1e7?cmp(vv):brl.format(vv), tot?'<span class="bad">'+pct(vv/tot)+'</span> de inadimplência':''],
-    ['Desconto concedido', brl2.format(desc), rs.length?int.format(rs.filter(r=>r.desconto>0).length)+' cobranças com desconto':''],
+    ['Desconto concedido', desc>=1e4?brl.format(desc):brl2.format(desc), rs.length?int.format(rs.filter(r=>r.desconto>0).length)+' cobranças com desconto':''],
     ['Prazo médio de recebimento', pm==null?'—':pm.toLocaleString('pt-BR',{maximumFractionDigits:1})+' dias', prz.length?'entre notificação e pagamento':'']
   ];
   document.getElementById('kpis').innerHTML=K.map(k=>'<div class="kpi"><div class="k">'+k[0]+'</div><div class="v">'+k[1]+'</div><div class="s">'+k[2]+'</div></div>').join('');
@@ -495,9 +502,10 @@ function render(){
   // Mensal por ano
   const years=[...new Set(rs.map(r=>r.y))].sort();
   const pal=[css('--accent'),css('--text'),css('--muted'),css('--accent-lo'),css('--map-hi')];
-  CH.mes.data.datasets=years.map((y,i)=>{const arr=new Array(12).fill(0); rs.forEach(r=>{if(r.y===y) arr[r.m]+=r.valor;});
+  CH.mes.data.datasets=years.map((y,i)=>{const arr=new Array(12).fill(0), den=new Array(12).fill(0);
+    rs.forEach(r=>{if(r.y===y){den[r.m]+=r.valor; if(r.situacao==='Vencida') arr[r.m]+=r.valor;}});
     const c=pal[(years.length-1-i)%pal.length];
-    return {label:String(y),data:arr.map(v=>v||null),borderColor:c,backgroundColor:c,pointBackgroundColor:c,borderWidth:2.5,pointRadius:3,tension:.3,spanGaps:false};});
+    return {label:String(y),den,data:arr.map((v,m)=>den[m]?v:null),borderColor:c,backgroundColor:c,pointBackgroundColor:c,borderWidth:2.5,pointRadius:3,tension:.3,spanGaps:false};});
   CH.mes.update();
 
   // Meio
@@ -556,6 +564,8 @@ function renderSlicers(all){
   document.querySelectorAll('.slicer').forEach(el=>{
     const k=el.dataset.key, f=FIELD[k];
     const avail=new Set(all.filter(r=>pass(r,k)).map(r=>r[f]));
+    const cnt=el.querySelector('.cnt'); cnt.textContent=F[k].size?F[k].size+' sel.':'Todos'; cnt.classList.toggle('on',F[k].size>0);
+    el.querySelector('.clr').hidden=!F[k].size;
     el.querySelector('.opts').innerHTML=opts[k].map(v=>'<button type="button" class="'+(F[k].has(v)?'on ':'')+(avail.has(v)?'':'na')+'" data-v="'+esc(v)+'">'+esc(v)+'</button>').join('');
     el.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>toggle(k,k==='ano'?+b.dataset.v:b.dataset.v));
   });
