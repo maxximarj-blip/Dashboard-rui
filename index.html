@@ -542,17 +542,18 @@ function drawMes(multi){
   const p1=v=>(v*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
   const p2=v=>(v*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
   const many=INAD.length>14;
-  CH.mes=new Chart(document.getElementById('cMes'),{type:'line',data:{labels:INAD.map(d=>multi?d.lbl:MESES[d.m]),datasets:[
-      {label:'Valor',data:INAD.map(d=>d.v?d.vv/d.v:0),borderColor:T,backgroundColor:T,pointBackgroundColor:T,borderWidth:2.5,pointRadius:3.5,tension:.25,
+  const XL=INAD.map(d=>multi?d.lbl:MESES[d.m]), nX=XL.length;
+  CH.mes=new Chart(document.getElementById('cMes'),{type:'line',data:{datasets:[
+      {label:'Valor',data:INAD.map((d,i)=>({x:i,y:d.v?d.vv/d.v:0})),borderColor:T,backgroundColor:T,pointBackgroundColor:T,borderWidth:2.5,pointRadius:3.5,tension:.25,
         datalabels:{align:'top',offset:6,color:T}},
-      {label:'Quantidade',data:INAD.map(d=>d.n?d.nv/d.n:0),borderColor:A,backgroundColor:A,pointBackgroundColor:A,borderWidth:2.5,pointRadius:3.5,tension:.25,
+      {label:'Quantidade',data:INAD.map((d,i)=>({x:i,y:d.n?d.nv/d.n:0})),borderColor:A,backgroundColor:A,pointBackgroundColor:A,borderWidth:2.5,pointRadius:3.5,tension:.25,
         datalabels:{align:'bottom',offset:6,color:css('--accent-hi')}}]},
     options:{maintainAspectRatio:false,layout:{padding:{top:8,right:32,left:4}},interaction:{mode:'index',intersect:false},
       scales:{y:{min:0,max:1,ticks:{color:M,stepSize:.25,callback:v=>Math.round(v*100)+'%'},grid:{color:'rgba(255,255,255,.06)'},border:{display:false}},
-        x:{grid:{display:false},border:{color:L},ticks:{color:T,maxRotation:0,autoSkip:true,autoSkipPadding:10}}},
+        x:{type:'linear',min:-0.4,max:Math.max(nX-0.6,0.6),afterBuildTicks:sc=>{sc.ticks=XL.map((_,i)=>({value:i}));},grid:{display:false},border:{color:L},ticks:{color:T,maxRotation:0,stepSize:1,autoSkip:true,autoSkipPadding:10,callback:v=>Number.isInteger(v)?(XL[v]??''):''}}},
       plugins:{legend:{display:true,position:'top',align:'end',labels:{color:T,boxWidth:14,boxHeight:3,padding:14}},
         tooltip:{callbacks:{title:c=>INAD[c[0].dataIndex].lbl,label:c=>{const d=INAD[c.dataIndex];return c.dataset.label==='Quantidade'?' Quantidade: '+p2(c.parsed.y)+' ('+int.format(d.nv)+' de '+int.format(d.n)+')':' Valor: '+p2(c.parsed.y)+' ('+cmp(d.vv)+' de '+cmp(d.v)+')';}}},
-        datalabels:{display:many?'auto':true,font:{size:10.5,weight:700},formatter:p1,clip:false}}}});
+        datalabels:{display:many?'auto':true,font:{size:10.5,weight:700},formatter:v=>p1(v.y),clip:false}}}});
 }
 function setBar(ch,labels,vals,key){
   ch.data.labels=labels; ch.data.datasets[0].data=vals;
